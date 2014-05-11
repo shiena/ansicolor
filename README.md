@@ -58,6 +58,8 @@ func main() {
 }
 ```
 
+![screenshot](https://gist.githubusercontent.com/shiena/a1bada24b525314a7d5e/raw/c763aa7cda6e4fefaccf831e2617adc40b6151c7/main.png)
+
 ## See also:
 
 - https://github.com/daviddengcn/go-colortext
