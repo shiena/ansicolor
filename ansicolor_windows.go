@@ -47,8 +47,9 @@ const (
 )
 
 const (
-	ansi_reset     = "0"
-	ansi_intensity = "1"
+	ansi_reset         = "0"
+	ansi_intensity_on  = "1"
+	ansi_intensity_off = "22"
 
 	ansi_foreground_black   = "30"
 	ansi_foreground_red     = "31"
@@ -165,8 +166,10 @@ func changeColor(param []byte) {
 				winForeColor = foreground_red | foreground_green | foreground_blue
 				winBackColor = 0
 				winIntensity = false
-			case ansi_intensity:
+			case ansi_intensity_on:
 				winIntensity = true
+			case ansi_intensity_off:
+				winIntensity = false
 			default:
 				// unknown code
 			}
