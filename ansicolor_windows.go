@@ -146,10 +146,16 @@ func setConsoleTextAttribute(hConsoleOutput uintptr, wAttributes uint16) bool {
 }
 
 func changeColor(param []byte) {
+	screenInfo := getConsoleScreenBufferInfo(uintptr(syscall.Stdout))
+	if screenInfo == nil {
+		return
+	}
+
+	wAttributes := screenInfo.WAttributes
+	winForeColor := wAttributes & (foreground_red | foreground_green | foreground_blue)
+	winBackColor := wAttributes & (background_red | background_green | background_blue)
+	winIntensity := (wAttributes & foreground_intensity) != 0
 	param_line := strings.Split(string(param), string(SEP))
-	var winForeColor uint16 = foreground_red | foreground_green | foreground_blue
-	var winBackColor uint16 = 0
-	var winIntensity bool = false
 	for _, p := range param_line {
 		c, ok := colorMap[p]
 		switch {
