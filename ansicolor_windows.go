@@ -7,6 +7,7 @@ import (
 	"io"
 	"strings"
 	"syscall"
+	"unsafe"
 )
 
 type csiState int
@@ -105,9 +106,37 @@ var colorMap = map[string]winColor{
 }
 
 var (
-	kernel32                    = syscall.NewLazyDLL("kernel32.dll")
-	procSetConsoleTextAttribute = kernel32.NewProc("SetConsoleTextAttribute")
+	kernel32                       = syscall.NewLazyDLL("kernel32.dll")
+	procSetConsoleTextAttribute    = kernel32.NewProc("SetConsoleTextAttribute")
+	procGetConsoleScreenBufferInfo = kernel32.NewProc("GetConsoleScreenBufferInfo")
 )
+
+type coord struct {
+	X, Y int16
+}
+
+type small_rect struct {
+	Left, Top, Right, Bottom int16
+}
+
+type console_screen_buffer_info struct {
+	DwSize              coord
+	DwCursorPosition    coord
+	WAttributes         uint16
+	SrWindow            small_rect
+	DwMaximumWindowSize coord
+}
+
+func getConsoleScreenBufferInfo(hConsoleOutput uintptr) *console_screen_buffer_info {
+	var csbi console_screen_buffer_info
+	ret, _, _ := procGetConsoleScreenBufferInfo.Call(
+		hConsoleOutput,
+		uintptr(unsafe.Pointer(&csbi)))
+	if ret == 0 {
+		return nil
+	}
+	return &csbi
+}
 
 func setConsoleTextAttribute(hConsoleOutput uintptr, wAttributes uint16) bool {
 	ret, _, _ := procSetConsoleTextAttribute.Call(
