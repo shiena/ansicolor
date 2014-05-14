@@ -13,9 +13,9 @@ import (
 type csiState int
 
 const (
-	TEXT csiState = iota
-	ESC1
-	ESC2
+	outsideCsiCode csiState = iota
+	firstCsiCode
+	secondeCsiCode
 )
 
 type ansiColorWriter struct {
@@ -26,10 +26,10 @@ type ansiColorWriter struct {
 }
 
 const (
-	CSI1  byte = '\x1b'
-	CSI2  byte = '['
-	SEP   byte = ';'
-	COLOR byte = 'm'
+	firstCsiChar   byte = '\x1b'
+	secondeCsiChar byte = '['
+	separatorChar  byte = ';'
+	sgrCode        byte = 'm'
 )
 
 const (
@@ -153,47 +153,47 @@ func changeColor(param []byte) {
 	}
 
 	wAttributes := screenInfo.WAttributes
-	winForeColor := wAttributes & (foregroundRed | foregroundGreen | foregroundBlue)
-	winBackColor := wAttributes & (backgroundRed | backgroundGreen | backgroundBlue)
-	winIntensity := (wAttributes & foregroundIntensity) != 0
-	paramLine := strings.Split(string(param), string(SEP))
-	for _, p := range paramLine {
+	winForegroundColor := wAttributes & (foregroundRed | foregroundGreen | foregroundBlue)
+	winBackgroundColor := wAttributes & (backgroundRed | backgroundGreen | backgroundBlue)
+	isWinIntensity := (wAttributes & foregroundIntensity) != 0
+	csiParam := strings.Split(string(param), string(separatorChar))
+	for _, p := range csiParam {
 		c, ok := colorMap[p]
 		switch {
 		case !ok:
 			switch p {
 			case ansiReset:
-				winForeColor = foregroundRed | foregroundGreen | foregroundBlue
-				winBackColor = 0
-				winIntensity = false
+				winForegroundColor = foregroundRed | foregroundGreen | foregroundBlue
+				winBackgroundColor = 0
+				isWinIntensity = false
 			case ansiIntensityOn:
-				winIntensity = true
+				isWinIntensity = true
 			case ansiIntensityOff:
-				winIntensity = false
+				isWinIntensity = false
 			default:
 				// unknown code
 			}
 		case c.drawType == foreground:
-			winForeColor = c.code
+			winForegroundColor = c.code
 		case c.drawType == background:
-			winBackColor = c.code
+			winBackgroundColor = c.code
 		}
 	}
-	if winIntensity {
-		winForeColor |= foregroundIntensity
+	if isWinIntensity {
+		winForegroundColor |= foregroundIntensity
 	}
-	setConsoleTextAttribute(uintptr(syscall.Stdout), winForeColor|winBackColor)
+	setConsoleTextAttribute(uintptr(syscall.Stdout), winForegroundColor|winBackgroundColor)
 }
 
 func parseEscapeSequence(command byte, param []byte) {
 	switch command {
-	case COLOR:
+	case sgrCode:
 		changeColor(param)
 	}
 }
 
-func isParam(b byte) bool {
-	return ('0' <= b && b <= '9') || b == SEP
+func isParameterChar(b byte) bool {
+	return ('0' <= b && b <= '9') || b == separatorChar
 }
 
 func (cw *ansiColorWriter) pushBuffer(ch byte) {
@@ -210,25 +210,25 @@ func (cw *ansiColorWriter) Write(p []byte) (int, error) {
 	r := 0
 	for _, ch := range p {
 		switch cw.state {
-		case TEXT:
-			if ch == CSI1 {
-				cw.state = ESC1
+		case outsideCsiCode:
+			if ch == firstCsiChar {
+				cw.state = firstCsiCode
 			} else {
 				cw.pushBuffer(ch)
 			}
-		case ESC1:
+		case firstCsiCode:
 			switch ch {
-			case CSI1:
+			case firstCsiChar:
 				cw.pushBuffer(ch)
-			case CSI2:
-				cw.state = ESC2
+			case secondeCsiChar:
+				cw.state = secondeCsiCode
 			default:
-				cw.pushBuffer(CSI1)
+				cw.pushBuffer(firstCsiChar)
 				cw.pushBuffer(ch)
-				cw.state = TEXT
+				cw.state = outsideCsiCode
 			}
-		case ESC2:
-			if isParam(ch) {
+		case secondeCsiCode:
+			if isParameterChar(ch) {
 				cw.paramBuf.WriteByte(ch)
 			} else {
 				nw, err := cw.flushBuffer()
@@ -239,11 +239,11 @@ func (cw *ansiColorWriter) Write(p []byte) (int, error) {
 				param := cw.paramBuf.Bytes()
 				cw.paramBuf.Reset()
 				parseEscapeSequence(ch, param)
-				cw.state = TEXT
+				cw.state = outsideCsiCode
 			}
 		default:
 			cw.pushBuffer(ch)
-			cw.state = TEXT
+			cw.state = outsideCsiCode
 		}
 	}
 
