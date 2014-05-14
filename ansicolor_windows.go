@@ -155,7 +155,7 @@ func changeColor(param []byte) {
 	wAttributes := screenInfo.WAttributes
 	winForegroundColor := wAttributes & (foregroundRed | foregroundGreen | foregroundBlue)
 	winBackgroundColor := wAttributes & (backgroundRed | backgroundGreen | backgroundBlue)
-	isWinIntensity := (wAttributes & foregroundIntensity) != 0
+	winIntensity := wAttributes & foregroundIntensity
 	csiParam := strings.Split(string(param), string(separatorChar))
 	for _, p := range csiParam {
 		c, ok := colorMap[p]
@@ -165,11 +165,11 @@ func changeColor(param []byte) {
 			case ansiReset:
 				winForegroundColor = foregroundRed | foregroundGreen | foregroundBlue
 				winBackgroundColor = 0
-				isWinIntensity = false
+				winIntensity = 0
 			case ansiIntensityOn:
-				isWinIntensity = true
+				winIntensity = foregroundIntensity
 			case ansiIntensityOff:
-				isWinIntensity = false
+				winIntensity = 0
 			default:
 				// unknown code
 			}
@@ -179,10 +179,7 @@ func changeColor(param []byte) {
 			winBackgroundColor = c.code
 		}
 	}
-	if isWinIntensity {
-		winForegroundColor |= foregroundIntensity
-	}
-	setConsoleTextAttribute(uintptr(syscall.Stdout), winForegroundColor|winBackgroundColor)
+	setConsoleTextAttribute(uintptr(syscall.Stdout), winForegroundColor|winBackgroundColor|winIntensity)
 }
 
 func parseEscapeSequence(command byte, param []byte) {
