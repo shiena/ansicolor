@@ -33,43 +33,43 @@ const (
 )
 
 const (
-	foreground_blue      = uint16(0x0001)
-	foreground_green     = uint16(0x0002)
-	foreground_red       = uint16(0x0004)
-	foreground_intensity = uint16(0x0008)
-	background_blue      = uint16(0x0010)
-	background_green     = uint16(0x0020)
-	background_red       = uint16(0x0040)
-	background_intensity = uint16(0x0080)
+	foregroundBlue      = uint16(0x0001)
+	foregroundGreen     = uint16(0x0002)
+	foregroundRed       = uint16(0x0004)
+	foregroundIntensity = uint16(0x0008)
+	backgroundBlue      = uint16(0x0010)
+	backgroundGreen     = uint16(0x0020)
+	backgroundRed       = uint16(0x0040)
+	backgroundIntensity = uint16(0x0080)
 
-	foreground_mask = foreground_blue | foreground_green | foreground_red | foreground_intensity
-	background_mask = background_blue | background_green | background_red | background_intensity
+	foregroundMask = foregroundBlue | foregroundGreen | foregroundRed | foregroundIntensity
+	backgroundMask = backgroundBlue | backgroundGreen | backgroundRed | backgroundIntensity
 )
 
 const (
-	ansi_reset         = "0"
-	ansi_intensity_on  = "1"
-	ansi_intensity_off = "22"
+	ansiReset        = "0"
+	ansiIntensityOn  = "1"
+	ansiIntensityOff = "22"
 
-	ansi_foreground_black   = "30"
-	ansi_foreground_red     = "31"
-	ansi_foreground_green   = "32"
-	ansi_foreground_yellow  = "33"
-	ansi_foreground_blue    = "34"
-	ansi_foreground_magenta = "35"
-	ansi_foreground_cyan    = "36"
-	ansi_foreground_white   = "37"
-	ansi_foreground_default = "39"
+	ansiForegroundBlack   = "30"
+	ansiForegroundRed     = "31"
+	ansiForegroundGreen   = "32"
+	ansiForegroundYellow  = "33"
+	ansiForegroundBlue    = "34"
+	ansiForegroundMagenta = "35"
+	ansiForegroundCyan    = "36"
+	ansiForegroundWhite   = "37"
+	ansiForegroundDefault = "39"
 
-	ansi_background_black   = "40"
-	ansi_background_red     = "41"
-	ansi_background_green   = "42"
-	ansi_background_yellow  = "43"
-	ansi_background_blue    = "44"
-	ansi_background_magenta = "45"
-	ansi_background_cyan    = "46"
-	ansi_background_white   = "47"
-	ansi_background_default = "49"
+	ansiBackgroundBlack   = "40"
+	ansiBackgroundRed     = "41"
+	ansiBackgroundGreen   = "42"
+	ansiBackgroundYellow  = "43"
+	ansiBackgroundBlue    = "44"
+	ansiBackgroundMagenta = "45"
+	ansiBackgroundCyan    = "46"
+	ansiBackgroundWhite   = "47"
+	ansiBackgroundDefault = "49"
 )
 
 type drawType int
@@ -85,25 +85,25 @@ type winColor struct {
 }
 
 var colorMap = map[string]winColor{
-	ansi_foreground_black:   {0, foreground},
-	ansi_foreground_red:     {foreground_red, foreground},
-	ansi_foreground_green:   {foreground_green, foreground},
-	ansi_foreground_yellow:  {foreground_red | foreground_green, foreground},
-	ansi_foreground_blue:    {foreground_blue, foreground},
-	ansi_foreground_magenta: {foreground_red | foreground_blue, foreground},
-	ansi_foreground_cyan:    {foreground_green | foreground_blue, foreground},
-	ansi_foreground_white:   {foreground_red | foreground_green | foreground_blue, foreground},
-	ansi_foreground_default: {foreground_red | foreground_green | foreground_blue, foreground},
+	ansiForegroundBlack:   {0, foreground},
+	ansiForegroundRed:     {foregroundRed, foreground},
+	ansiForegroundGreen:   {foregroundGreen, foreground},
+	ansiForegroundYellow:  {foregroundRed | foregroundGreen, foreground},
+	ansiForegroundBlue:    {foregroundBlue, foreground},
+	ansiForegroundMagenta: {foregroundRed | foregroundBlue, foreground},
+	ansiForegroundCyan:    {foregroundGreen | foregroundBlue, foreground},
+	ansiForegroundWhite:   {foregroundRed | foregroundGreen | foregroundBlue, foreground},
+	ansiForegroundDefault: {foregroundRed | foregroundGreen | foregroundBlue, foreground},
 
-	ansi_background_black:   {0, background},
-	ansi_background_red:     {background_red, background},
-	ansi_background_green:   {background_green, background},
-	ansi_background_yellow:  {background_red | background_green, background},
-	ansi_background_blue:    {background_blue, background},
-	ansi_background_magenta: {background_red | background_blue, background},
-	ansi_background_cyan:    {background_green | background_blue, background},
-	ansi_background_white:   {background_red | background_green | background_blue, background},
-	ansi_background_default: {0, background},
+	ansiBackgroundBlack:   {0, background},
+	ansiBackgroundRed:     {backgroundRed, background},
+	ansiBackgroundGreen:   {backgroundGreen, background},
+	ansiBackgroundYellow:  {backgroundRed | backgroundGreen, background},
+	ansiBackgroundBlue:    {backgroundBlue, background},
+	ansiBackgroundMagenta: {backgroundRed | backgroundBlue, background},
+	ansiBackgroundCyan:    {backgroundGreen | backgroundBlue, background},
+	ansiBackgroundWhite:   {backgroundRed | backgroundGreen | backgroundBlue, background},
+	ansiBackgroundDefault: {0, background},
 }
 
 var (
@@ -116,20 +116,20 @@ type coord struct {
 	X, Y int16
 }
 
-type small_rect struct {
+type smallRect struct {
 	Left, Top, Right, Bottom int16
 }
 
-type console_screen_buffer_info struct {
+type consoleScreenBufferInfo struct {
 	DwSize              coord
 	DwCursorPosition    coord
 	WAttributes         uint16
-	SrWindow            small_rect
+	SrWindow            smallRect
 	DwMaximumWindowSize coord
 }
 
-func getConsoleScreenBufferInfo(hConsoleOutput uintptr) *console_screen_buffer_info {
-	var csbi console_screen_buffer_info
+func getConsoleScreenBufferInfo(hConsoleOutput uintptr) *consoleScreenBufferInfo {
+	var csbi consoleScreenBufferInfo
 	ret, _, _ := procGetConsoleScreenBufferInfo.Call(
 		hConsoleOutput,
 		uintptr(unsafe.Pointer(&csbi)))
@@ -153,22 +153,22 @@ func changeColor(param []byte) {
 	}
 
 	wAttributes := screenInfo.WAttributes
-	winForeColor := wAttributes & (foreground_red | foreground_green | foreground_blue)
-	winBackColor := wAttributes & (background_red | background_green | background_blue)
-	winIntensity := (wAttributes & foreground_intensity) != 0
-	param_line := strings.Split(string(param), string(SEP))
-	for _, p := range param_line {
+	winForeColor := wAttributes & (foregroundRed | foregroundGreen | foregroundBlue)
+	winBackColor := wAttributes & (backgroundRed | backgroundGreen | backgroundBlue)
+	winIntensity := (wAttributes & foregroundIntensity) != 0
+	paramLine := strings.Split(string(param), string(SEP))
+	for _, p := range paramLine {
 		c, ok := colorMap[p]
 		switch {
 		case !ok:
 			switch p {
-			case ansi_reset:
-				winForeColor = foreground_red | foreground_green | foreground_blue
+			case ansiReset:
+				winForeColor = foregroundRed | foregroundGreen | foregroundBlue
 				winBackColor = 0
 				winIntensity = false
-			case ansi_intensity_on:
+			case ansiIntensityOn:
 				winIntensity = true
-			case ansi_intensity_off:
+			case ansiIntensityOff:
 				winIntensity = false
 			default:
 				// unknown code
@@ -180,7 +180,7 @@ func changeColor(param []byte) {
 		}
 	}
 	if winIntensity {
-		winForeColor |= foreground_intensity
+		winForeColor |= foregroundIntensity
 	}
 	setConsoleTextAttribute(uintptr(syscall.Stdout), winForeColor|winBackColor)
 }
