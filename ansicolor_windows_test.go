@@ -23,7 +23,11 @@ func TestWritePlanText(t *testing.T) {
 	}
 }
 
-func writeAnsiColor(expectedText, colorCode string) (actualText string, actualAttributes uint16) {
+type screenNotFoundError struct {
+	error
+}
+
+func writeAnsiColor(expectedText, colorCode string) (actualText string, actualAttributes uint16, err error) {
 	inner := bytes.NewBufferString("")
 	w := ansicolor.NewAnsiColorWriter(inner)
 	fmt.Fprintf(w, "\x1b[%sm%s", colorCode, expectedText)
@@ -32,6 +36,8 @@ func writeAnsiColor(expectedText, colorCode string) (actualText string, actualAt
 	screenInfo := GetConsoleScreenBufferInfo(uintptr(syscall.Stdout))
 	if screenInfo != nil {
 		actualAttributes = screenInfo.WAttributes
+	} else {
+		err = &screenNotFoundError{}
 	}
 	return
 }
@@ -91,9 +97,12 @@ func TestWriteAnsiColorText(t *testing.T) {
 	}
 
 	assertTextAttribute := func(expectedText string, expectedAttributes uint16, ansiColor string) {
-		actualText, actualAttributes := writeAnsiColor(expectedText, ansiColor)
+		actualText, actualAttributes, err := writeAnsiColor(expectedText, ansiColor)
 		if actualText != expectedText {
 			t.Errorf("Get %s, want %s", actualText, expectedText)
+		}
+		if err != nil {
+			t.Fatal("Could not get ConsoleScreenBufferInfo")
 		}
 		if actualAttributes != expectedAttributes {
 			t.Errorf("Text: %s, Get %d, want %d", expectedText, actualAttributes, expectedAttributes)
