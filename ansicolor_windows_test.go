@@ -49,7 +49,11 @@ type testParam struct {
 }
 
 func TestWriteAnsiColorText(t *testing.T) {
-	defer ResetColor()
+	screenInfo := GetConsoleScreenBufferInfo(uintptr(syscall.Stdout))
+	if screenInfo == nil {
+		t.Fatal("Could not get ConsoleScreenBufferInfo")
+	}
+	defer ChangeColor(screenInfo.WAttributes)
 
 	fgParam := []testParam{
 		{"foreground black", uint16(0x0000), "30"},
@@ -76,7 +80,7 @@ func TestWriteAnsiColorText(t *testing.T) {
 	}
 
 	resetParam := []testParam{
-		{"all reset", uint16(0x0007 | 0x0000 | 0x0000), "0"},
+		{"all reset", uint16(screenInfo.WAttributes), "0"},
 	}
 
 	boldParam := []testParam{

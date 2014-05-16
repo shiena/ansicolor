@@ -110,7 +110,15 @@ var (
 	kernel32                       = syscall.NewLazyDLL("kernel32.dll")
 	procSetConsoleTextAttribute    = kernel32.NewProc("SetConsoleTextAttribute")
 	procGetConsoleScreenBufferInfo = kernel32.NewProc("GetConsoleScreenBufferInfo")
+	defaultAttr                    *textAttributes
 )
+
+func init() {
+	screenInfo := getConsoleScreenBufferInfo(uintptr(syscall.Stdout))
+	if screenInfo != nil {
+		defaultAttr = convertTextAttr(screenInfo.WAttributes)
+	}
+}
 
 type coord struct {
 	X, Y int16
@@ -146,16 +154,44 @@ func setConsoleTextAttribute(hConsoleOutput uintptr, wAttributes uint16) bool {
 	return ret != 0
 }
 
+type textAttributes struct {
+	foregroundColor     uint16
+	backgroundColor     uint16
+	foregroundIntensity uint16
+	backgroundIntensity uint16
+	otherAttributes     uint16
+}
+
+func convertTextAttr(winAttr uint16) *textAttributes {
+	fgColor := winAttr & (foregroundRed | foregroundGreen | foregroundBlue)
+	bgColor := winAttr & (backgroundRed | backgroundGreen | backgroundBlue)
+	fgIntensity := winAttr & foregroundIntensity
+	bgIntensity := winAttr & backgroundIntensity
+	otherAttributes := winAttr &^ (foregroundMask | backgroundMask)
+	return &textAttributes{fgColor, bgColor, fgIntensity, bgIntensity, otherAttributes}
+}
+
+func convertWinAttr(textAttr *textAttributes) uint16 {
+	var winAttr uint16 = 0
+	winAttr |= textAttr.foregroundColor
+	winAttr |= textAttr.backgroundColor
+	winAttr |= textAttr.foregroundIntensity
+	winAttr |= textAttr.backgroundIntensity
+	winAttr |= textAttr.otherAttributes
+	return winAttr
+}
+
 func changeColor(param []byte) {
+	if defaultAttr == nil {
+		return
+	}
+
 	screenInfo := getConsoleScreenBufferInfo(uintptr(syscall.Stdout))
 	if screenInfo == nil {
 		return
 	}
 
-	wAttributes := screenInfo.WAttributes
-	winForegroundColor := wAttributes & (foregroundRed | foregroundGreen | foregroundBlue)
-	winBackgroundColor := wAttributes & (backgroundRed | backgroundGreen | backgroundBlue)
-	winIntensity := wAttributes & foregroundIntensity
+	winAttr := convertTextAttr(screenInfo.WAttributes)
 	csiParam := strings.Split(string(param), string(separatorChar))
 	for _, p := range csiParam {
 		c, ok := colorMap[p]
@@ -163,23 +199,26 @@ func changeColor(param []byte) {
 		case !ok:
 			switch p {
 			case ansiReset:
-				winForegroundColor = foregroundRed | foregroundGreen | foregroundBlue
-				winBackgroundColor = 0
-				winIntensity = 0
+				winAttr.foregroundColor = defaultAttr.foregroundColor
+				winAttr.backgroundColor = defaultAttr.backgroundColor
+				winAttr.foregroundIntensity = defaultAttr.foregroundIntensity
+				winAttr.backgroundIntensity = defaultAttr.backgroundIntensity
+				winAttr.otherAttributes = defaultAttr.otherAttributes
 			case ansiIntensityOn:
-				winIntensity = foregroundIntensity
+				winAttr.foregroundIntensity = foregroundIntensity
 			case ansiIntensityOff:
-				winIntensity = 0
+				winAttr.foregroundIntensity = 0
 			default:
 				// unknown code
 			}
 		case c.drawType == foreground:
-			winForegroundColor = c.code
+			winAttr.foregroundColor = c.code
 		case c.drawType == background:
-			winBackgroundColor = c.code
+			winAttr.backgroundColor = c.code
 		}
 	}
-	setConsoleTextAttribute(uintptr(syscall.Stdout), winForegroundColor|winBackgroundColor|winIntensity)
+	winTextAttribute := convertWinAttr(winAttr)
+	setConsoleTextAttribute(uintptr(syscall.Stdout), winTextAttribute)
 }
 
 func parseEscapeSequence(command byte, param []byte) {

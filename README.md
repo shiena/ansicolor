@@ -6,7 +6,7 @@ Ansicolor library provides color console in Windows as ANSICON for Golang.
 
 |Escape sequence|Text attributes|
 |---------------|----|
-|\x1b[0m|All attributes off(foreground white and background black)|
+|\x1b[0m|All attributes off(color at startup)|
 |\x1b[1m|Bold on(enable intensity)|
 |\x1b[22m|Bold off(disable intensity)|
 
@@ -20,7 +20,7 @@ Ansicolor library provides color console in Windows as ANSICON for Golang.
 |\x1b[35m|Magenta|
 |\x1b[36m|Cyan|
 |\x1b[37m|White|
-|\x1b[39m|Default(white)|
+|\x1b[39m|Default(foreground color at startup)|
 
 |Escape sequence|Background colors|
 |---------------|----|
@@ -32,7 +32,7 @@ Ansicolor library provides color console in Windows as ANSICON for Golang.
 |\x1b[45m|Magenta|
 |\x1b[46m|Cyan|
 |\x1b[47m|White|
-|\x1b[49m|Default(black)|
+|\x1b[49m|Default(background color at startup)|
 
 ## Example
 
