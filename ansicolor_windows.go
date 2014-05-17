@@ -41,6 +41,7 @@ const (
 	backgroundGreen     = uint16(0x0020)
 	backgroundRed       = uint16(0x0040)
 	backgroundIntensity = uint16(0x0080)
+	underscore          = uint16(0x8000)
 
 	foregroundMask = foregroundBlue | foregroundGreen | foregroundRed | foregroundIntensity
 	backgroundMask = backgroundBlue | backgroundGreen | backgroundRed | backgroundIntensity
@@ -50,6 +51,8 @@ const (
 	ansiReset        = "0"
 	ansiIntensityOn  = "1"
 	ansiIntensityOff = "21"
+	ansiUnderlineOn  = "4"
+	ansiUnderlineOff = "24"
 
 	ansiForegroundBlack   = "30"
 	ansiForegroundRed     = "31"
@@ -159,6 +162,7 @@ type textAttributes struct {
 	backgroundColor     uint16
 	foregroundIntensity uint16
 	backgroundIntensity uint16
+	underscore          uint16
 	otherAttributes     uint16
 }
 
@@ -167,8 +171,9 @@ func convertTextAttr(winAttr uint16) *textAttributes {
 	bgColor := winAttr & (backgroundRed | backgroundGreen | backgroundBlue)
 	fgIntensity := winAttr & foregroundIntensity
 	bgIntensity := winAttr & backgroundIntensity
-	otherAttributes := winAttr &^ (foregroundMask | backgroundMask)
-	return &textAttributes{fgColor, bgColor, fgIntensity, bgIntensity, otherAttributes}
+	underline := winAttr & underscore
+	otherAttributes := winAttr &^ (foregroundMask | backgroundMask | underscore)
+	return &textAttributes{fgColor, bgColor, fgIntensity, bgIntensity, underline, otherAttributes}
 }
 
 func convertWinAttr(textAttr *textAttributes) uint16 {
@@ -177,6 +182,7 @@ func convertWinAttr(textAttr *textAttributes) uint16 {
 	winAttr |= textAttr.backgroundColor
 	winAttr |= textAttr.foregroundIntensity
 	winAttr |= textAttr.backgroundIntensity
+	winAttr |= textAttr.underscore
 	winAttr |= textAttr.otherAttributes
 	return winAttr
 }
@@ -208,6 +214,10 @@ func changeColor(param []byte) {
 				winAttr.foregroundIntensity = foregroundIntensity
 			case ansiIntensityOff:
 				winAttr.foregroundIntensity = 0
+			case ansiUnderlineOn:
+				winAttr.underscore = underscore
+			case ansiUnderlineOff:
+				winAttr.underscore = 0
 			default:
 				// unknown code
 			}

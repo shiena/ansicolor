@@ -88,6 +88,11 @@ func TestWriteAnsiColorText(t *testing.T) {
 		{"bold off", uint16(0x0007), "21"},
 	}
 
+	underscoreParam := []testParam{
+		{"underscore on", uint16(0x0007 | 0x8000), "4"},
+		{"underscore off", uint16(0x0007), "24"},
+	}
+
 	mixedParam := []testParam{
 		{"both black and bold", uint16(0x0000 | 0x0000 | 0x0008), "30;40;1"},
 		{"both red and bold", uint16(0x0004 | 0x0040 | 0x0008), "31;41;1"},
@@ -129,6 +134,11 @@ func TestWriteAnsiColorText(t *testing.T) {
 	}
 
 	for _, v := range boldParam {
+		ResetColor()
+		assertTextAttribute(v.text, v.attributes, v.ansiColor)
+	}
+
+	for _, v := range underscoreParam {
 		ResetColor()
 		assertTextAttribute(v.text, v.attributes, v.ansiColor)
 	}
