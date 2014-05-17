@@ -53,6 +53,8 @@ const (
 	ansiIntensityOff = "21"
 	ansiUnderlineOn  = "4"
 	ansiUnderlineOff = "24"
+	ansiBlinkOn      = "5"
+	ansiBlinkOff     = "25"
 
 	ansiForegroundBlack   = "30"
 	ansiForegroundRed     = "31"
@@ -218,6 +220,10 @@ func changeColor(param []byte) {
 				winAttr.underscore = underscore
 			case ansiUnderlineOff:
 				winAttr.underscore = 0
+			case ansiBlinkOn:
+				winAttr.backgroundIntensity = backgroundIntensity
+			case ansiBlinkOff:
+				winAttr.backgroundIntensity = 0
 			default:
 				// unknown code
 			}

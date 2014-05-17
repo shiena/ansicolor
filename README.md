@@ -7,10 +7,12 @@ Ansicolor library provides color console in Windows as ANSICON for Golang.
 |Escape sequence|Text attributes|
 |---------------|----|
 |\x1b[0m|All attributes off(color at startup)|
-|\x1b[1m|Bold on(enable intensity)|
+|\x1b[1m|Bold on(enable foreground intensity)|
 |\x1b[4m|Underline on|
-|\x1b[21m|Bold off(disable intensity)|
+|\x1b[5m|Blink on(enable background intensity)|
+|\x1b[21m|Bold off(disable foreground intensity)|
 |\x1b[24m|Underline off|
+|\x1b[25m|Blink off(disable background intensity)|
 
 |Escape sequence|Foreground colors|
 |---------------|----|
