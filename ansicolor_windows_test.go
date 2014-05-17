@@ -85,7 +85,7 @@ func TestWriteAnsiColorText(t *testing.T) {
 
 	boldParam := []testParam{
 		{"bold on", uint16(0x0007 | 0x0008), "1"},
-		{"bold off", uint16(0x0007), "22"},
+		{"bold off", uint16(0x0007), "21"},
 	}
 
 	mixedParam := []testParam{

@@ -49,7 +49,7 @@ const (
 const (
 	ansiReset        = "0"
 	ansiIntensityOn  = "1"
-	ansiIntensityOff = "22"
+	ansiIntensityOff = "21"
 
 	ansiForegroundBlack   = "30"
 	ansiForegroundRed     = "31"
