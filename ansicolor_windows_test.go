@@ -99,15 +99,15 @@ func TestWriteAnsiColorText(t *testing.T) {
 	}
 
 	mixedParam := []testParam{
-		{"both black and bold", uint16(0x0000 | 0x0000 | 0x0008), "30;40;1"},
-		{"both red and bold", uint16(0x0004 | 0x0040 | 0x0008), "31;41;1"},
-		{"both green and bold", uint16(0x0002 | 0x0020 | 0x0008), "32;42;1"},
-		{"both yellow and bold", uint16(0x0006 | 0x0060 | 0x0008), "33;43;1"},
-		{"both blue and bold", uint16(0x0001 | 0x0010 | 0x0008), "34;44;1"},
-		{"both magenta and bold", uint16(0x0005 | 0x0050 | 0x0008), "35;45;1"},
-		{"both cyan and bold", uint16(0x0003 | 0x0030 | 0x0008), "36;46;1"},
-		{"both white and bold", uint16(0x0007 | 0x0070 | 0x0008), "37;47;1"},
-		{"both default and bold", uint16(0x0007 | 0x0000 | 0x0008), "39;49;1"},
+		{"both black,   bold, underline, blink", uint16(0x0000 | 0x0000 | 0x0008 | 0x8000 | 0x0080), "30;40;1;4;5"},
+		{"both red,     bold, underline, blink", uint16(0x0004 | 0x0040 | 0x0008 | 0x8000 | 0x0080), "31;41;1;4;5"},
+		{"both green,   bold, underline, blink", uint16(0x0002 | 0x0020 | 0x0008 | 0x8000 | 0x0080), "32;42;1;4;5"},
+		{"both yellow,  bold, underline, blink", uint16(0x0006 | 0x0060 | 0x0008 | 0x8000 | 0x0080), "33;43;1;4;5"},
+		{"both blue,    bold, underline, blink", uint16(0x0001 | 0x0010 | 0x0008 | 0x8000 | 0x0080), "34;44;1;4;5"},
+		{"both magenta, bold, underline, blink", uint16(0x0005 | 0x0050 | 0x0008 | 0x8000 | 0x0080), "35;45;1;4;5"},
+		{"both cyan,    bold, underline, blink", uint16(0x0003 | 0x0030 | 0x0008 | 0x8000 | 0x0080), "36;46;1;4;5"},
+		{"both white,   bold, underline, blink", uint16(0x0007 | 0x0070 | 0x0008 | 0x8000 | 0x0080), "37;47;1;4;5"},
+		{"both default, bold, underline, blink", uint16(0x0007 | 0x0000 | 0x0008 | 0x8000 | 0x0080), "39;49;1;4;5"},
 	}
 
 	assertTextAttribute := func(expectedText string, expectedAttributes uint16, ansiColor string) {
@@ -138,18 +138,18 @@ func TestWriteAnsiColorText(t *testing.T) {
 		assertTextAttribute(v.text, v.attributes, v.ansiColor)
 	}
 
+	ResetColor()
 	for _, v := range boldParam {
-		ResetColor()
 		assertTextAttribute(v.text, v.attributes, v.ansiColor)
 	}
 
+	ResetColor()
 	for _, v := range underscoreParam {
-		ResetColor()
 		assertTextAttribute(v.text, v.attributes, v.ansiColor)
 	}
 
+	ResetColor()
 	for _, v := range blinkParam {
-		ResetColor()
 		assertTextAttribute(v.text, v.attributes, v.ansiColor)
 	}
 
