@@ -125,6 +125,14 @@ var (
 func init() {
 	screenInfo := getConsoleScreenBufferInfo(uintptr(syscall.Stdout))
 	if screenInfo != nil {
+		colorMap[ansiForegroundDefault] = winColor{
+			screenInfo.WAttributes & (foregroundRed | foregroundGreen | foregroundBlue),
+			foreground,
+		}
+		colorMap[ansiBackgroundDefault] = winColor{
+			screenInfo.WAttributes & (backgroundRed | backgroundGreen | backgroundBlue),
+			background,
+		}
 		defaultAttr = convertTextAttr(screenInfo.WAttributes)
 	}
 }
@@ -213,9 +221,10 @@ func changeColor(param []byte) {
 			case ansiReset:
 				winAttr.foregroundColor = defaultAttr.foregroundColor
 				winAttr.backgroundColor = defaultAttr.backgroundColor
-				winAttr.foregroundIntensity = defaultAttr.foregroundIntensity
-				winAttr.backgroundIntensity = defaultAttr.backgroundIntensity
-				winAttr.otherAttributes = defaultAttr.otherAttributes
+				winAttr.foregroundIntensity = 0
+				winAttr.backgroundIntensity = 0
+				winAttr.underscore = 0
+				winAttr.otherAttributes = 0
 			case ansiIntensityOn:
 				winAttr.foregroundIntensity = foregroundIntensity
 			case ansiIntensityOff:

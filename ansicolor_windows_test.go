@@ -23,7 +23,7 @@ func TestWritePlanText(t *testing.T) {
 	fmt.Fprintf(w, expected)
 	actual := inner.String()
 	if actual != expected {
-		t.Errorf("Get %v, want %v", actual, expected)
+		t.Errorf("Get 0x%04x, want 0x%04x", actual, expected)
 	}
 }
 
@@ -58,33 +58,35 @@ func TestWriteAnsiColorText(t *testing.T) {
 		t.Fatal("Could not get ConsoleScreenBufferInfo")
 	}
 	defer ChangeColor(screenInfo.WAttributes)
+	defaultFgColor := screenInfo.WAttributes & uint16(0x0007)
+	defaultBgColor := screenInfo.WAttributes & uint16(0x0070)
 
 	fgParam := []testParam{
-		{"foreground black", uint16(0x0000), "30"},
-		{"foreground red", uint16(0x0004), "31"},
-		{"foreground green", uint16(0x0002), "32"},
-		{"foreground yellow", uint16(0x0006), "33"},
-		{"foreground blue", uint16(0x0001), "34"},
-		{"foreground magenta", uint16(0x0005), "35"},
-		{"foreground cyan", uint16(0x0003), "36"},
-		{"foreground white", uint16(0x0007), "37"},
-		{"foreground default", uint16(0x0007), "39"},
+		{"foreground black  ", uint16(0x0000 | 0x0000), "30"},
+		{"foreground red    ", uint16(0x0004 | 0x0000), "31"},
+		{"foreground green  ", uint16(0x0002 | 0x0000), "32"},
+		{"foreground yellow ", uint16(0x0006 | 0x0000), "33"},
+		{"foreground blue   ", uint16(0x0001 | 0x0000), "34"},
+		{"foreground magenta", uint16(0x0005 | 0x0000), "35"},
+		{"foreground cyan   ", uint16(0x0003 | 0x0000), "36"},
+		{"foreground white  ", uint16(0x0007 | 0x0000), "37"},
+		{"foreground default", defaultFgColor | 0x0000, "39"},
 	}
 
 	bgParam := []testParam{
-		{"background black", uint16(0x0007 | 0x0000), "40"},
-		{"background red", uint16(0x0007 | 0x0040), "41"},
-		{"background green", uint16(0x0007 | 0x0020), "42"},
-		{"background yellow", uint16(0x0007 | 0x0060), "43"},
-		{"background blue", uint16(0x0007 | 0x0010), "44"},
+		{"background black  ", uint16(0x0007 | 0x0000), "40"},
+		{"background red    ", uint16(0x0007 | 0x0040), "41"},
+		{"background green  ", uint16(0x0007 | 0x0020), "42"},
+		{"background yellow ", uint16(0x0007 | 0x0060), "43"},
+		{"background blue   ", uint16(0x0007 | 0x0010), "44"},
 		{"background magenta", uint16(0x0007 | 0x0050), "45"},
-		{"background cyan", uint16(0x0007 | 0x0030), "46"},
-		{"background white", uint16(0x0007 | 0x0070), "47"},
-		{"background default", uint16(0x0007 | 0x0000), "49"},
+		{"background cyan   ", uint16(0x0007 | 0x0030), "46"},
+		{"background white  ", uint16(0x0007 | 0x0070), "47"},
+		{"background default", uint16(0x0007) | defaultBgColor, "49"},
 	}
 
 	resetParam := []testParam{
-		{"all reset", uint16(screenInfo.WAttributes), "0"},
+		{"all reset", defaultFgColor | defaultBgColor, "0"},
 	}
 
 	boldParam := []testParam{
@@ -111,7 +113,7 @@ func TestWriteAnsiColorText(t *testing.T) {
 		{"both magenta, bold, underline, blink", uint16(0x0005 | 0x0050 | 0x0008 | 0x8000 | 0x0080), "35;45;1;4;5"},
 		{"both cyan,    bold, underline, blink", uint16(0x0003 | 0x0030 | 0x0008 | 0x8000 | 0x0080), "36;46;1;4;5"},
 		{"both white,   bold, underline, blink", uint16(0x0007 | 0x0070 | 0x0008 | 0x8000 | 0x0080), "37;47;1;4;5"},
-		{"both default, bold, underline, blink", uint16(0x0007 | 0x0000 | 0x0008 | 0x8000 | 0x0080), "39;49;1;4;5"},
+		{"both default, bold, underline, blink", uint16(defaultFgColor | defaultBgColor | 0x0008 | 0x8000 | 0x0080), "39;49;1;4;5"},
 	}
 
 	assertTextAttribute := func(expectedText string, expectedAttributes uint16, ansiColor string) {
@@ -123,7 +125,7 @@ func TestWriteAnsiColorText(t *testing.T) {
 			t.Fatal("Could not get ConsoleScreenBufferInfo")
 		}
 		if actualAttributes != expectedAttributes {
-			t.Errorf("Text: %s, Get %d, want %d", expectedText, actualAttributes, expectedAttributes)
+			t.Errorf("Text: %s, Get 0x%04x, want 0x%04x", expectedText, actualAttributes, expectedAttributes)
 		}
 	}
 
