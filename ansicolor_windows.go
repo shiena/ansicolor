@@ -212,7 +212,11 @@ func changeColor(param []byte) {
 	}
 
 	winAttr := convertTextAttr(screenInfo.WAttributes)
-	csiParam := strings.Split(string(param), string(separatorChar))
+	strParam := string(param)
+	if len(strParam) <= 0 {
+		strParam = "0"
+	}
+	csiParam := strings.Split(strParam, string(separatorChar))
 	for _, p := range csiParam {
 		c, ok := colorMap[p]
 		switch {

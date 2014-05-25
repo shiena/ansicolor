@@ -87,6 +87,7 @@ func TestWriteAnsiColorText(t *testing.T) {
 
 	resetParam := []testParam{
 		{"all reset", defaultFgColor | defaultBgColor, "0"},
+		{"all reset", defaultFgColor | defaultBgColor, ""},
 	}
 
 	boldParam := []testParam{
