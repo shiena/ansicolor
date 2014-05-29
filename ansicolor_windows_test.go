@@ -60,6 +60,8 @@ func TestWriteAnsiColorText(t *testing.T) {
 	defer ChangeColor(screenInfo.WAttributes)
 	defaultFgColor := screenInfo.WAttributes & uint16(0x0007)
 	defaultBgColor := screenInfo.WAttributes & uint16(0x0070)
+	defaultFgIntensity := screenInfo.WAttributes & uint16(0x0008)
+	defaultBgIntensity := screenInfo.WAttributes & uint16(0x0080)
 
 	fgParam := []testParam{
 		{"foreground black  ", uint16(0x0000 | 0x0000), "30"},
@@ -86,8 +88,8 @@ func TestWriteAnsiColorText(t *testing.T) {
 	}
 
 	resetParam := []testParam{
-		{"all reset", defaultFgColor | defaultBgColor, "0"},
-		{"all reset", defaultFgColor | defaultBgColor, ""},
+		{"all reset", defaultFgColor | defaultBgColor | defaultFgIntensity | defaultBgIntensity, "0"},
+		{"all reset", defaultFgColor | defaultBgColor | defaultFgIntensity | defaultBgIntensity, ""},
 	}
 
 	boldParam := []testParam{
