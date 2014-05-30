@@ -225,8 +225,8 @@ func changeColor(param []byte) {
 			case ansiReset:
 				winAttr.foregroundColor = defaultAttr.foregroundColor
 				winAttr.backgroundColor = defaultAttr.backgroundColor
-				winAttr.foregroundIntensity = 0
-				winAttr.backgroundIntensity = 0
+				winAttr.foregroundIntensity = defaultAttr.foregroundIntensity
+				winAttr.backgroundIntensity = defaultAttr.backgroundIntensity
 				winAttr.underscore = 0
 				winAttr.otherAttributes = 0
 			case ansiIntensityOn:
