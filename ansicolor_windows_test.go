@@ -23,7 +23,58 @@ func TestWritePlanText(t *testing.T) {
 	fmt.Fprintf(w, expected)
 	actual := inner.String()
 	if actual != expected {
-		t.Errorf("Get 0x%04x, want 0x%04x", actual, expected)
+		t.Errorf("Get %s, want %s", actual, expected)
+	}
+}
+
+func TestWriteParseText(t *testing.T) {
+	inner := bytes.NewBufferString("")
+	w := ansicolor.NewAnsiColorWriter(inner)
+
+	input_tail := "\x1b[0mtail text"
+	expected_tail := "tail text"
+	fmt.Fprintf(w, input_tail)
+	actual_tail := inner.String()
+	inner.Reset()
+	if actual_tail != expected_tail {
+		t.Errorf("Get %s, want %s", actual_tail, expected_tail)
+	}
+
+	input_head := "head text\x1b[0m"
+	expected_head := "head text"
+	fmt.Fprintf(w, input_head)
+	actual_head := inner.String()
+	inner.Reset()
+	if actual_head != expected_head {
+		t.Errorf("Get %s, want %s", actual_head, expected_head)
+	}
+
+	input_both_ends := "both ends \x1b[0m text"
+	expected_both_ends := "both ends  text"
+	fmt.Fprintf(w, input_both_ends)
+	actual_both_ends := inner.String()
+	inner.Reset()
+	if actual_both_ends != expected_both_ends {
+		t.Errorf("Get %s, want %s", actual_both_ends, expected_both_ends)
+	}
+
+	input_many_esc := "\x1b\x1b\x1b\x1b[0m many esc"
+	expected_many_esc := "\x1b\x1b\x1b many esc"
+	fmt.Fprintf(w, input_many_esc)
+	actual_many_esc := inner.String()
+	inner.Reset()
+	if actual_many_esc != expected_many_esc {
+		t.Errorf("Get %s, want %s", actual_many_esc, expected_many_esc)
+	}
+
+	expected_split := "split  text"
+	for _, ch := range "split \x1b[0m text" {
+		fmt.Fprintf(w, string(ch))
+	}
+	actual_split := inner.String()
+	inner.Reset()
+	if actual_split != expected_split {
+		t.Errorf("Get %s, want %s", actual_split, expected_split)
 	}
 }
 

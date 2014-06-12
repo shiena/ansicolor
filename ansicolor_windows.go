@@ -26,7 +26,6 @@ type ansiColorWriter struct {
 	w        io.Writer
 	state    csiState
 	paramBuf bytes.Buffer
-	textBuf  bytes.Buffer
 }
 
 const (
@@ -265,57 +264,47 @@ func isParameterChar(b byte) bool {
 	return ('0' <= b && b <= '9') || b == separatorChar
 }
 
-func (cw *ansiColorWriter) pushBuffer(ch byte) {
-	cw.textBuf.WriteByte(ch)
-}
-
-func (cw *ansiColorWriter) flushBuffer() (int, error) {
-	text := cw.textBuf.Bytes()
-	cw.textBuf.Reset()
-	return cw.w.Write(text)
-}
-
 func (cw *ansiColorWriter) Write(p []byte) (int, error) {
-	r := 0
-	for _, ch := range p {
+	r, nw, first, last := 0, 0, 0, 0
+	var err error
+	for i, ch := range p {
 		switch cw.state {
 		case outsideCsiCode:
 			if ch == firstCsiChar {
 				cw.state = firstCsiCode
-			} else {
-				cw.pushBuffer(ch)
 			}
 		case firstCsiCode:
 			switch ch {
 			case firstCsiChar:
-				cw.pushBuffer(ch)
+				break
 			case secondeCsiChar:
 				cw.state = secondeCsiCode
+				last = i - 1
 			default:
-				cw.pushBuffer(firstCsiChar)
-				cw.pushBuffer(ch)
 				cw.state = outsideCsiCode
 			}
 		case secondeCsiCode:
 			if isParameterChar(ch) {
 				cw.paramBuf.WriteByte(ch)
 			} else {
-				nw, err := cw.flushBuffer()
+				nw, err = cw.w.Write(p[first:last])
 				r += nw
 				if err != nil {
 					return r, err
 				}
+				first = i + 1
 				param := cw.paramBuf.Bytes()
 				cw.paramBuf.Reset()
 				parseEscapeSequence(ch, param)
 				cw.state = outsideCsiCode
 			}
 		default:
-			cw.pushBuffer(ch)
 			cw.state = outsideCsiCode
 		}
 	}
 
-	nw, err := cw.flushBuffer()
+	if cw.state == outsideCsiCode {
+		nw, err = cw.w.Write(p[first:len(p)])
+	}
 	return r + nw, err
 }
