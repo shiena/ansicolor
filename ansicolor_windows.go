@@ -265,25 +265,29 @@ func isParameterChar(b byte) bool {
 }
 
 func (cw *ansiColorWriter) Write(p []byte) (int, error) {
-	r, nw, first, last := 0, 0, 0, 0
+	r, nw, nc, first, last := 0, 0, 0, 0, 0
 	var err error
 	for i, ch := range p {
 		switch cw.state {
 		case outsideCsiCode:
 			if ch == firstCsiChar {
+				nc++
 				cw.state = firstCsiCode
 			}
 		case firstCsiCode:
 			switch ch {
 			case firstCsiChar:
+				nc++
 				break
 			case secondeCsiChar:
+				nc++
 				cw.state = secondeCsiCode
 				last = i - 1
 			default:
 				cw.state = outsideCsiCode
 			}
 		case secondeCsiCode:
+			nc++
 			if isParameterChar(ch) {
 				cw.paramBuf.WriteByte(ch)
 			} else {
@@ -306,5 +310,6 @@ func (cw *ansiColorWriter) Write(p []byte) (int, error) {
 	if cw.state == outsideCsiCode {
 		nw, err = cw.w.Write(p[first:len(p)])
 	}
-	return r + nw, err
+
+	return r + nw + nc, err
 }
