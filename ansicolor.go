@@ -12,6 +12,6 @@ import "io"
 // In the console of Windows, which change the foreground and background
 // colors of the text by the escape sequence.
 // In the console of other systems, which writes to w all text.
-func NewAnsiColorWriter(w io.Writer) *ansiColorWriter {
+func NewAnsiColorWriter(w io.Writer) io.Writer {
 	return &ansiColorWriter{w: w}
 }
