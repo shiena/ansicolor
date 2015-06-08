@@ -131,6 +131,7 @@ var colorMap = map[string]winColor{
 	ansiLightForegroundMagenta: {foregroundIntensity | foregroundRed | foregroundBlue, foreground},
 	ansiLightForegroundCyan:    {foregroundIntensity | foregroundGreen | foregroundBlue, foreground},
 	ansiLightForegroundWhite:   {foregroundIntensity | foregroundRed | foregroundGreen | foregroundBlue, foreground},
+	ansiLightForegroundDefault: {foregroundIntensity | foregroundRed | foregroundGreen | foregroundBlue, foreground},
 }
 
 var (
