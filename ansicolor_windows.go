@@ -78,6 +78,16 @@ const (
 	ansiBackgroundCyan    = "46"
 	ansiBackgroundWhite   = "47"
 	ansiBackgroundDefault = "49"
+
+	ansiLightForegroundGray    = "90"
+	ansiLightForegroundRed     = "91"
+	ansiLightForegroundGreen   = "92"
+	ansiLightForegroundYellow  = "93"
+	ansiLightForegroundBlue    = "94"
+	ansiLightForegroundMagenta = "95"
+	ansiLightForegroundCyan    = "96"
+	ansiLightForegroundWhite   = "97"
+	ansiLightForegroundDefault = "99"
 )
 
 type drawType int
@@ -112,6 +122,15 @@ var colorMap = map[string]winColor{
 	ansiBackgroundCyan:    {backgroundGreen | backgroundBlue, background},
 	ansiBackgroundWhite:   {backgroundRed | backgroundGreen | backgroundBlue, background},
 	ansiBackgroundDefault: {0, background},
+
+	ansiLightForegroundGray:    {foregroundIntensity, foreground},
+	ansiLightForegroundRed:     {foregroundIntensity | foregroundRed, foreground},
+	ansiLightForegroundGreen:   {foregroundIntensity | foregroundGreen, foreground},
+	ansiLightForegroundYellow:  {foregroundIntensity | foregroundRed | foregroundGreen, foreground},
+	ansiLightForegroundBlue:    {foregroundIntensity | foregroundBlue, foreground},
+	ansiLightForegroundMagenta: {foregroundIntensity | foregroundRed | foregroundBlue, foreground},
+	ansiLightForegroundCyan:    {foregroundIntensity | foregroundGreen | foregroundBlue, foreground},
+	ansiLightForegroundWhite:   {foregroundIntensity | foregroundRed | foregroundGreen | foregroundBlue, foreground},
 }
 
 var (
