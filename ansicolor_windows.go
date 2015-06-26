@@ -19,7 +19,7 @@ type csiState int
 const (
 	outsideCsiCode csiState = iota
 	firstCsiCode
-	secondeCsiCode
+	secondCsiCode
 )
 
 type ansiColorWriter struct {
@@ -317,12 +317,12 @@ func (cw *ansiColorWriter) Write(p []byte) (int, error) {
 				break
 			case secondeCsiChar:
 				nc++
-				cw.state = secondeCsiCode
+				cw.state = secondCsiCode
 				last = i - 1
 			default:
 				cw.state = outsideCsiCode
 			}
-		case secondeCsiCode:
+		case secondCsiCode:
 			nc++
 			if isParameterChar(ch) {
 				cw.paramBuf.WriteByte(ch)
