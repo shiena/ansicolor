@@ -1,3 +1,5 @@
+[![GoDoc](https://godoc.org/github.com/shiena/ansicolor?status.svg)](https://godoc.org/github.com/shiena/ansicolor)
+
 # ansicolor
 
 Ansicolor library provides color console in Windows as ANSICON for Golang.
