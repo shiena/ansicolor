@@ -289,11 +289,14 @@ func changeColor(param []byte) {
 	setConsoleTextAttribute(uintptr(syscall.Stdout), winTextAttribute)
 }
 
-func parseEscapeSequence(command byte, param []byte) {
+func parseEscapeSequence(command byte, param []byte) bool {
 	switch command {
 	case sgrCode:
 		changeColor(param)
+	default:
+		return false
 	}
+	return true
 }
 
 func isParameterChar(b byte) bool {
@@ -335,7 +338,12 @@ func (cw *ansiColorWriter) Write(p []byte) (int, error) {
 				first = i + 1
 				param := cw.paramBuf.Bytes()
 				cw.paramBuf.Reset()
-				parseEscapeSequence(ch, param)
+				if !parseEscapeSequence(ch, param) {
+					cw.w.Write(firstCsiChar)
+					cw.w.Write(secondeCsiChar)
+					cw.w.Write(param)
+					cw.w.Write(ch)
+				}
 				cw.state = outsideCsiCode
 			}
 		default:
