@@ -234,3 +234,44 @@ func TestWriteAnsiColorText(t *testing.T) {
 		assertTextAttribute(v.text, v.attributes, v.ansiColor)
 	}
 }
+
+func TestIgnoreUnknownSequences(t *testing.T) {
+	inner := bytes.NewBufferString("")
+	w := ansicolor.NewAnsiColorWriter(inner)
+
+	inputText := "\x1b[=decpath mode"
+	expectedTail := inputText
+	fmt.Fprintf(w, inputText)
+	actualTail := inner.String()
+	inner.Reset()
+	if actualTail != expectedTail {
+		t.Errorf("Get %s, want %s", actualTail, expectedTail)
+	}
+
+	inputText = "\x1b[=tailing esc and bracket\x1b["
+	expectedTail = inputText
+	fmt.Fprintf(w, inputText)
+	actualTail = inner.String()
+	inner.Reset()
+	if actualTail != expectedTail {
+		t.Errorf("Get %s, want %s", actualTail, expectedTail)
+	}
+
+	inputText = "\x1b[?tailing esc\x1b"
+	expectedTail = inputText
+	fmt.Fprintf(w, inputText)
+	actualTail = inner.String()
+	inner.Reset()
+	if actualTail != expectedTail {
+		t.Errorf("Get %s, want %s", actualTail, expectedTail)
+	}
+
+	inputText = "\x1b[1h;3punended color code invalid\x1b3"
+	expectedTail = inputText
+	fmt.Fprintf(w, inputText)
+	actualTail = inner.String()
+	inner.Reset()
+	if actualTail != expectedTail {
+		t.Errorf("Get %s, want %s", actualTail, expectedTail)
+	}
+}
