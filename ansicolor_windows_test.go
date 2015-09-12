@@ -237,7 +237,7 @@ func TestWriteAnsiColorText(t *testing.T) {
 
 func TestIgnoreUnknownSequences(t *testing.T) {
 	inner := bytes.NewBufferString("")
-	w := ansicolor.NewAnsiColorWriter(inner)
+	w := ansicolor.NewModeAnsiColorWriter(inner, ansicolor.OutputNonColorEscSeq)
 
 	inputText := "\x1b[=decpath mode"
 	expectedTail := inputText

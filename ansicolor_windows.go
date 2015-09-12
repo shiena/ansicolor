@@ -24,6 +24,7 @@ const (
 
 type ansiColorWriter struct {
 	w             io.Writer
+	mode          outputMode
 	state         csiState
 	paramStartBuf bytes.Buffer
 	paramBuf      bytes.Buffer
@@ -237,14 +238,14 @@ func convertWinAttr(textAttr *textAttributes) uint16 {
 	return winAttr
 }
 
-func changeColor(param []byte) {
+func changeColor(param []byte) bool {
 	if defaultAttr == nil {
-		return
+		return false
 	}
 
 	screenInfo := getConsoleScreenBufferInfo(uintptr(syscall.Stdout))
 	if screenInfo == nil {
-		return
+		return true
 	}
 
 	winAttr := convertTextAttr(screenInfo.WAttributes)
@@ -288,16 +289,17 @@ func changeColor(param []byte) {
 	}
 	winTextAttribute := convertWinAttr(winAttr)
 	setConsoleTextAttribute(uintptr(syscall.Stdout), winTextAttribute)
+
+	return true
 }
 
 func parseEscapeSequence(command byte, param []byte) bool {
 	switch command {
 	case sgrCode:
-		changeColor(param)
+		return changeColor(param)
 	default:
 		return false
 	}
-	return true
 }
 
 func (cw *ansiColorWriter) flushBuffer() (int, error) {
@@ -341,8 +343,10 @@ func isParameterChar(b byte) bool {
 
 func (cw *ansiColorWriter) Write(p []byte) (int, error) {
 	r, nw, first, last := 0, 0, 0, 0
-	cw.state = outsideCsiCode
-	cw.resetBuffer()
+	if cw.mode != DiscardNonColorEscSeq {
+		cw.state = outsideCsiCode
+		cw.resetBuffer()
+	}
 
 	var err error
 	for i, ch := range p {
@@ -376,12 +380,14 @@ func (cw *ansiColorWriter) Write(p []byte) (int, error) {
 				}
 				first = i + 1
 				if !parseEscapeSequence(ch, cw.paramBuf.Bytes()) {
-					cw.paramBuf.WriteByte(ch)
-					nw, err := cw.flushBuffer()
-					if err != nil {
-						return r, err
+					if cw.mode == OutputNonColorEscSeq {
+						cw.paramBuf.WriteByte(ch)
+						nw, err := cw.flushBuffer()
+						if err != nil {
+							return r, err
+						}
+						r += nw
 					}
-					r += nw
 				} else {
 					n, _ := cw.resetBuffer()
 					// Add one more to the size of the buffer for the last ch
@@ -395,8 +401,10 @@ func (cw *ansiColorWriter) Write(p []byte) (int, error) {
 		}
 	}
 
-	nw, err = cw.w.Write(p[first:len(p)])
-	r += nw
+	if cw.mode != DiscardNonColorEscSeq || cw.state == outsideCsiCode {
+		nw, err = cw.w.Write(p[first:len(p)])
+		r += nw
+	}
 
 	return r, err
 }
