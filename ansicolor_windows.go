@@ -22,6 +22,14 @@ const (
 	secondCsiCode
 )
 
+type parseResult int
+
+const (
+	noConsole parseResult = iota
+	changedColor
+	unknown
+)
+
 type ansiColorWriter struct {
 	w             io.Writer
 	mode          outputMode
@@ -238,14 +246,10 @@ func convertWinAttr(textAttr *textAttributes) uint16 {
 	return winAttr
 }
 
-func changeColor(param []byte) bool {
-	if defaultAttr == nil {
-		return false
-	}
-
+func changeColor(param []byte) parseResult {
 	screenInfo := getConsoleScreenBufferInfo(uintptr(syscall.Stdout))
 	if screenInfo == nil {
-		return true
+		return noConsole
 	}
 
 	winAttr := convertTextAttr(screenInfo.WAttributes)
@@ -290,15 +294,19 @@ func changeColor(param []byte) bool {
 	winTextAttribute := convertWinAttr(winAttr)
 	setConsoleTextAttribute(uintptr(syscall.Stdout), winTextAttribute)
 
-	return true
+	return changedColor
 }
 
-func parseEscapeSequence(command byte, param []byte) bool {
+func parseEscapeSequence(command byte, param []byte) parseResult {
+	if defaultAttr == nil {
+		return noConsole
+	}
+
 	switch command {
 	case sgrCode:
 		return changeColor(param)
 	default:
-		return false
+		return unknown
 	}
 }
 
@@ -379,15 +387,14 @@ func (cw *ansiColorWriter) Write(p []byte) (int, error) {
 					return r, err
 				}
 				first = i + 1
-				if !parseEscapeSequence(ch, cw.paramBuf.Bytes()) {
-					if cw.mode == OutputNonColorEscSeq {
-						cw.paramBuf.WriteByte(ch)
-						nw, err := cw.flushBuffer()
-						if err != nil {
-							return r, err
-						}
-						r += nw
+				result := parseEscapeSequence(ch, cw.paramBuf.Bytes())
+				if result == noConsole || (cw.mode == OutputNonColorEscSeq && result == unknown) {
+					cw.paramBuf.WriteByte(ch)
+					nw, err := cw.flushBuffer()
+					if err != nil {
+						return r, err
 					}
+					r += nw
 				} else {
 					n, _ := cw.resetBuffer()
 					// Add one more to the size of the buffer for the last ch
