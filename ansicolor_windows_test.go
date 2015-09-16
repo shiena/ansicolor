@@ -23,7 +23,7 @@ func TestWritePlanText(t *testing.T) {
 	fmt.Fprintf(w, expected)
 	actual := inner.String()
 	if actual != expected {
-		t.Errorf("Get %s, want %s", actual, expected)
+		t.Errorf("Get %q, want %q", actual, expected)
 	}
 }
 
@@ -37,7 +37,7 @@ func TestWriteParseText(t *testing.T) {
 	actualTail := inner.String()
 	inner.Reset()
 	if actualTail != expectedTail {
-		t.Errorf("Get %s, want %s", actualTail, expectedTail)
+		t.Errorf("Get %q, want %q", actualTail, expectedTail)
 	}
 
 	inputHead := "head text\x1b[0m"
@@ -46,7 +46,7 @@ func TestWriteParseText(t *testing.T) {
 	actualHead := inner.String()
 	inner.Reset()
 	if actualHead != expectedHead {
-		t.Errorf("Get %s, want %s", actualHead, expectedHead)
+		t.Errorf("Get %q, want %q", actualHead, expectedHead)
 	}
 
 	inputBothEnds := "both ends \x1b[0m text"
@@ -55,7 +55,7 @@ func TestWriteParseText(t *testing.T) {
 	actualBothEnds := inner.String()
 	inner.Reset()
 	if actualBothEnds != expectedBothEnds {
-		t.Errorf("Get %s, want %s", actualBothEnds, expectedBothEnds)
+		t.Errorf("Get %q, want %q", actualBothEnds, expectedBothEnds)
 	}
 
 	inputManyEsc := "\x1b\x1b\x1b\x1b[0m many esc"
@@ -64,7 +64,7 @@ func TestWriteParseText(t *testing.T) {
 	actualManyEsc := inner.String()
 	inner.Reset()
 	if actualManyEsc != expectedManyEsc {
-		t.Errorf("Get %s, want %s", actualManyEsc, expectedManyEsc)
+		t.Errorf("Get %q, want %q", actualManyEsc, expectedManyEsc)
 	}
 
 	expectedSplit := "split  text"
@@ -74,7 +74,7 @@ func TestWriteParseText(t *testing.T) {
 	actualSplit := inner.String()
 	inner.Reset()
 	if actualSplit != expectedSplit {
-		t.Errorf("Get %s, want %s", actualSplit, expectedSplit)
+		t.Errorf("Get %q, want %q", actualSplit, expectedSplit)
 	}
 }
 
@@ -189,13 +189,13 @@ func TestWriteAnsiColorText(t *testing.T) {
 	assertTextAttribute := func(expectedText string, expectedAttributes uint16, ansiColor string) {
 		actualText, actualAttributes, err := writeAnsiColor(expectedText, ansiColor)
 		if actualText != expectedText {
-			t.Errorf("Get %s, want %s", actualText, expectedText)
+			t.Errorf("Get %q, want %q", actualText, expectedText)
 		}
 		if err != nil {
 			t.Fatal("Could not get ConsoleScreenBufferInfo")
 		}
 		if actualAttributes != expectedAttributes {
-			t.Errorf("Text: %s, Get 0x%04x, want 0x%04x", expectedText, actualAttributes, expectedAttributes)
+			t.Errorf("Text: %q, Get 0x%04x, want 0x%04x", expectedText, actualAttributes, expectedAttributes)
 		}
 	}
 
@@ -232,5 +232,46 @@ func TestWriteAnsiColorText(t *testing.T) {
 	for _, v := range mixedParam {
 		ResetColor()
 		assertTextAttribute(v.text, v.attributes, v.ansiColor)
+	}
+}
+
+func TestIgnoreUnknownSequences(t *testing.T) {
+	inner := bytes.NewBufferString("")
+	w := ansicolor.NewModeAnsiColorWriter(inner, ansicolor.OutputNonColorEscSeq)
+
+	inputText := "\x1b[=decpath mode"
+	expectedTail := inputText
+	fmt.Fprintf(w, inputText)
+	actualTail := inner.String()
+	inner.Reset()
+	if actualTail != expectedTail {
+		t.Errorf("Get %q, want %q", actualTail, expectedTail)
+	}
+
+	inputText = "\x1b[=tailing esc and bracket\x1b["
+	expectedTail = inputText
+	fmt.Fprintf(w, inputText)
+	actualTail = inner.String()
+	inner.Reset()
+	if actualTail != expectedTail {
+		t.Errorf("Get %q, want %q", actualTail, expectedTail)
+	}
+
+	inputText = "\x1b[?tailing esc\x1b"
+	expectedTail = inputText
+	fmt.Fprintf(w, inputText)
+	actualTail = inner.String()
+	inner.Reset()
+	if actualTail != expectedTail {
+		t.Errorf("Get %q, want %q", actualTail, expectedTail)
+	}
+
+	inputText = "\x1b[1h;3punended color code invalid\x1b3"
+	expectedTail = inputText
+	fmt.Fprintf(w, inputText)
+	actualTail = inner.String()
+	inner.Reset()
+	if actualTail != expectedTail {
+		t.Errorf("Get %q, want %q", actualTail, expectedTail)
 	}
 }
