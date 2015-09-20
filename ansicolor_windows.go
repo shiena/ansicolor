@@ -236,7 +236,7 @@ func convertTextAttr(winAttr uint16) *textAttributes {
 }
 
 func convertWinAttr(textAttr *textAttributes) uint16 {
-	var winAttr uint16 = 0
+	var winAttr uint16
 	winAttr |= textAttr.foregroundColor
 	winAttr |= textAttr.backgroundColor
 	winAttr |= textAttr.foregroundIntensity
